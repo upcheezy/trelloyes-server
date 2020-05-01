@@ -29,22 +29,17 @@ app.use(morgan(morganOption))
 app.use(helmet())
 app.use(cors())
 
-app.get('/', (req, res) => {
-    console.log(process.env.API_TOKEN)
-    res.send('Hello, world!')
-})
+const logger = winston.createLogger({
+    level: 'info',
+    format: winston.format.json(),
+    transports: [
+        new winston.transports.File({
+            filename: 'info.log'
+        })
+    ]
+});
 
 app.use(function errorHandler(error, req, res, next) {
-
-    const logger = winston.createLogger({
-        level: 'info',
-        format: winston.format.json(),
-        transports: [
-            new winston.transports.File({
-                filename: 'info.log'
-            })
-        ]
-    });
 
     if (NODE_ENV === 'production') {
         logger.add(new winston.transports.Console({
@@ -61,8 +56,8 @@ app.use(function errorHandler(error, req, res, next) {
 })
 
 app.use(function validateBearerToken(req, res, next) {
-    const apiToken = 'cfed1579-be8e-458c-aba4-22476668a0a7'
-    const authToken = req.get('Auth')
+    const apiToken = process.env.API_TOKEN;
+    const authToken = req.get('Authorization')
 
     if (!authToken || authToken.split(' ')[1] !== apiToken) {
         logger.error(`Unauthorized request to path: ${req.path}`);
@@ -72,6 +67,11 @@ app.use(function validateBearerToken(req, res, next) {
     }
     // move to the next middleware
     next()
+})
+
+app.get('/', (req, res) => {
+    console.log(process.env.API_TOKEN)
+    res.send('Hello, world!')
 })
 
 module.exports = app
