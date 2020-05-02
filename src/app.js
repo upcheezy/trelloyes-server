@@ -29,18 +29,17 @@ app.use(morgan(morganOption))
 app.use(helmet())
 app.use(cors())
 
+const logger = winston.createLogger({
+    level: 'info',
+    format: winston.format.json(),
+    transports: [
+        new winston.transports.File({
+            filename: 'info.log'
+        })
+    ]
+});
+
 app.use(function errorHandler(error, req, res, next) {
-
-    const logger = winston.createLogger({
-        level: 'info',
-        format: winston.format.json(),
-        transports: [
-            new winston.transports.File({
-                filename: 'info.log'
-            })
-        ]
-    });
-
     if (NODE_ENV === 'production') {
         logger.add(new winston.transports.Console({
             format: winston.format.simple()
